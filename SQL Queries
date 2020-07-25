@@ -24,7 +24,7 @@ GROUP BY EXTRACT(MONTH FROM when_created);
 
  
 
---QUESTION #7
+--QUESTION #5
 SELECT
     CASE WHEN net_value > 0 THEN 'NET WITHDRAWERS'
     ELSE 'NET DEPOSITORS'
@@ -37,7 +37,7 @@ SELECT
 
  
 
---QUESTION 6
+--QUESTION #6
 CREATE VIEW atx_volume_city_summary AS
 SELECT agents.city AS city, COUNT(agent_transactions.atx_id) AS Volume FROM agents 
 INNER JOIN agent_transactions 
@@ -47,7 +47,7 @@ GROUP BY agents.city
 
  
 
---QUESTION 7
+--QUESTION #7
 CREATE VIEW atx_volume_city_summary_by_country AS
 SELECT agents.country AS country, agents.city AS city, COUNT(agent_transactions.atx_id) AS Volume FROM agents 
 INNER JOIN agent_transactions 
@@ -57,7 +57,7 @@ GROUP BY agents.country, agents.city
 
  
 
---QUESTION 8
+--QUESTION #8
 CREATE VIEW send_volume_by_country_and_kind AS
 SELECT transfers.kind AS transfer_kind, wallets.ledger_location AS country, 
 SUM(transfers.send_amount_scalar) AS volume 
