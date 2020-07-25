@@ -1,22 +1,34 @@
--QUESTION #1 
+--QUESTION #1 
+-- The question requires the number of individual users registered on Wave, and this suggests the SELECT COUNT syntax
+
 SELECT COUNT(u_id) AS wave_users FROM users; 
 
 
  
 
 --QUESTION #2
+-- Similar to Q1 this question demands for a total numbers or counts of a field, in this case, a specific value in the field send_amount_currency which is CFA.
+
 SELECT COUNT(transfers_id) AS cfa_transfers FROM transfers
 WHERE send_amount_currency='CFA';
 
  
 
 --QUESTION #3
-SELECT DISTINCT COUNT(u_id) AS cfa_user_transfers FROM transfers
+--To ascertain the different users who have sent have sent transfer in CFA, basically, they should should have unique value, and which then becomes the primary key, in this instance, 
+the 'u_id' becomes the primary key.
+To be able to pinpoint the different users who use CFA, set them apart from other users.
+
+SELECT COUNT(DISTINCT u_id) AS cfa_user_transfers FROM transfers
 WHERE send_amount_currency = 'CFA';
 
  
 
 --QUESTION #4
+--Count all transactions from January to December in 2018. To get this, the transactions of each agent across the months will have to be made known.
+We will need the agent transaction ID, atx_id from the aget transactions table and the respective timeframe (from the when_created column) within
+which the transactions where completed.
+
 SELECT TO_CHAR(TO_DATE (EXTRACT(MONTH FROM when_created)::text, 'MM'), 'Month') AS transaction_month,
 COUNT(atx_id) AS num_of_agents FROM agent_transactions
 WHERE EXTRACT(YEAR FROM when_created)=2018
@@ -25,6 +37,10 @@ GROUP BY EXTRACT(MONTH FROM when_created);
  
 
 --QUESTION #5
+--Net depositors - total number (COUNT) of agents with more deposit vol. than withdrawal vol.
+Net withdrawers - total number (COUNT) of agents with more withdrawal volume than deposits.
+Use of a 'condition' to return a query result of either net depositors or net withdrawers.
+
 SELECT
     CASE WHEN net_value > 0 THEN 'NET WITHDRAWERS'
     ELSE 'NET DEPOSITORS'
@@ -38,6 +54,8 @@ SELECT
  
 
 --QUESTION #6
+--IN order to get the agent transaction and city, agent table and city table will be created. The VIEW syntax will help us update the table on weekly bases. An alternative which is a pseudocolumn would not allow us to update so the choice of VIEW syntax.
+
 CREATE VIEW atx_volume_city_summary AS
 SELECT agents.city AS city, COUNT(agent_transactions.atx_id) AS Volume FROM agents 
 INNER JOIN agent_transactions 
@@ -48,6 +66,8 @@ GROUP BY agents.city
  
 
 --QUESTION #7
+-- This will separate the table created in Q6 by country, city and volume.
+
 CREATE VIEW atx_volume_city_summary_by_country AS
 SELECT agents.country AS country, agents.city AS city, COUNT(agent_transactions.atx_id) AS Volume FROM agents 
 INNER JOIN agent_transactions 
@@ -58,6 +78,9 @@ GROUP BY agents.country, agents.city
  
 
 --QUESTION #8
+--Identify total number of transfers and the kind within a country across a length of time. Due to the relation of data in 
+ tables of interest, there will be the need of a table JOIN.
+ 
 CREATE VIEW send_volume_by_country_and_kind AS
 SELECT transfers.kind AS transfer_kind, wallets.ledger_location AS country, 
 SUM(transfers.send_amount_scalar) AS volume 
@@ -72,22 +95,22 @@ GROUP BY wallets.ledger_location, transfers.kind;
 
                                        
 --QUESTION #9
-SELECT 
-COUNT(transfers.source_wallet_id) AS Unique_Senders,
-COUNT(transfer_id) AS transaction_count,
-transfers.kind AS Transfer_Kind,
-wallets.ledger_location AS Country, 
-SUM(transfers.send_amount_scalar) AS Volume 
-FROM transfers 
-INNER JOIN wallets 
-ON transfers.source_wallet_id = wallets.wallet_id
-WHERE (transfers.when_created > (NOW() - INTERVAL '1 week'))                                       
-GROUP BY wallets.ledger_location, transfers.kind;  
 
+CREATE OR REPLACE VIEW send_volume_by_country_and_kind AS
+SELECT transfers.kind AS transfer_kind, wallets.ledger_location AS country,
+SUM(transfers.send_amount_scalar) AS volume, COUNT(transfers.send_amount_scalar) AS trans_count,
+COUNT(DISTINCT transfers.source_wallet_id) AS unique_senders
+FROM transfers
+INNER JOIN wallets
+ON transfers.source_wallet_id = wallets.wallet_id
+WHERE (transfers.when_created > (NOW() - INTERVAL '1 week'))                                      
+GROUP BY wallets.ledger_location, transfers.kind;
 
 
 
                                        
 --QUESTION #10
+--This is to show how much exactly was sent in CFA and the amount is greater than 10000000.
+
 SELECT source_wallet_id, send_amount_scalar FROM transfers 
 WHERE send_amount_currency = 'CFA' AND (send_amount_scalar>10000000) AND (transfers.when_created > (NOW() - INTERVAL '1 month'));
