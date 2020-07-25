@@ -1,0 +1,1 @@
+# Azubi-Wave-Database---SQL-Queries
